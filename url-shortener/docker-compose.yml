@@ -1,0 +1,17 @@
+# Connecting to the running postgres instance
+# docker ps (to figure out container id)
+# docker exec -it <container_id> bash
+# psql -U postgres
+
+version: "3"
+services:
+    db:
+        image: postgres:18.4-alpine3.23
+        environment:
+            POSTGRES_DB: "${DB_DATABASE}"
+            POSTGRES_USER: "${DB_USERNAME}"
+            POSTGRES_PASSWORD: "${DB_PASSWORD}"
+        ports:
+            - "${DB_PORT}:${DB_PORT}"
+        volumes:
+            - ./pgdata:/var/lib/postgresql
