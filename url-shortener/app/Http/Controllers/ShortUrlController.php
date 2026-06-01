@@ -4,63 +4,41 @@ namespace App\Http\Controllers;
 
 use App\Models\ShortUrl;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ShortUrlController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $shortUrls = ShortUrl::all();
-        return response()->json($shortUrls);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'url' => 'required|url|unique:short_urls,original_url',
+            'Content-Type' => 'application/json',
+        ]);
+
+        return DB::transaction(function () use ($request) {
+            $nextId = DB::table('short_urls')->max('id') + 1;
+
+            $originalUrl = $request->input('url');
+            $shortCode = ShortUrl::generateShortCode($nextId);
+
+            $shortUrl = ShortUrl::create([
+                'original_url' => $originalUrl,
+                'short_code' => $shortCode,
+            ]);
+            return response()->json($shortUrl, 201);
+        });
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(ShortUrl $shortUrl)
+    public function show(string $shortCode)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(ShortUrl $shortUrl)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, ShortUrl $shortUrl)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(ShortUrl $shortUrl)
-    {
-        //
+        $shortUrl = ShortUrl::where('short_code', $shortCode)->firstOrFail();
+        return response()->json($shortUrl->makeHidden('id'));
     }
 }
