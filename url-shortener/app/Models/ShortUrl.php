@@ -13,10 +13,12 @@ class ShortUrl extends Model
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $base = strlen($characters);
         $shortCode = '';
+
         while ($id > 0) {
             $shortCode = $characters[$id % $base] . $shortCode;
             $id = floor($id / $base);
         }
-        return $shortCode;
+
+        return str_pad($shortCode, 8, '0', STR_PAD_LEFT);
     }
 }
