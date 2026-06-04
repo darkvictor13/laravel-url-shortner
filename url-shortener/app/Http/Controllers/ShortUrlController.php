@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreShortUrlRequest;
 use App\Models\ShortUrl;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ShortUrlController extends Controller
@@ -11,17 +11,14 @@ class ShortUrlController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreShortUrlRequest $request)
     {
-        $request->validate([
-            'url' => 'required|url|unique:short_urls,original_url',
-            'Content-Type' => 'application/json',
-        ]);
+        $validated = $request->validated();
 
-        return DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($validated) {
             $nextId = DB::table('short_urls')->max('id') + 1;
 
-            $originalUrl = $request->input('url');
+            $originalUrl = $validated['url'];
             $shortCode = ShortUrl::generateShortCode($nextId);
 
             $shortUrl = ShortUrl::create([
