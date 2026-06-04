@@ -14,19 +14,21 @@ class ShortUrlController extends Controller
     public function store(StoreShortUrlRequest $request)
     {
         $validated = $request->validated();
+        $originalUrl = $validated['url'];
 
-        return DB::transaction(function () use ($validated) {
-            $nextId = DB::table('short_urls')->max('id') + 1;
-
-            $originalUrl = $validated['url'];
-            $shortCode = ShortUrl::generateShortCode($nextId);
-
+        $shortUrl = DB::transaction(function () use ($originalUrl) {
             $shortUrl = ShortUrl::create([
                 'original_url' => $originalUrl,
-                'short_code' => $shortCode,
             ]);
-            return response()->json($shortUrl, 201);
+
+            $shortUrl->update([
+                'short_code' => ShortUrl::generateShortCode($shortUrl->id),
+            ]);
+
+            return $shortUrl;
         });
+
+        return response()->json($shortUrl, 201);
     }
 
     /**
